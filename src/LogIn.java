@@ -150,13 +150,13 @@ LogIn()
                     JOptionPane.showMessageDialog(null, "Invalid credentials or role");
                 } else {
                     String role = rs.getString("role");
-                    System.out.println("Role: " + role); // For debugging purposes
+
 
                     if ("Admin".equals(role)) {
-                        DashboardAdmin d = new DashboardAdmin();
+                        DashboardAdmin d = new DashboardAdmin(rs);
                         dispose();
                     } else if ("Pharmacist".equals(role)) {
-                        DashboardPharmacist d = new DashboardPharmacist();
+                        DashboardPharmacist d = new DashboardPharmacist(rs);
                         dispose();
                     } else {
                         JOptionPane.showMessageDialog(null, "Unknown role: " + role);

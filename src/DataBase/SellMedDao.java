@@ -3,116 +3,124 @@ package DataBase;
 import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 import java.time.LocalDate;
-
+import java.util.List;
+import model.CartItem;
 public class SellMedDao {
-    Connection con = null;
-
+    public Connection con = null;
 
     public SellMedDao(String url, String username, String password) {
-
         con = Connexion.getConnection(url, username, password);
     }
 
-    public void Tablefetch( DefaultTableModel model) throws SQLException {
-        // Create a statement
-        Statement statement = con.createStatement();
+    // Fetch medicine details for the table
+    public void Tablefetch(DefaultTableModel model) throws SQLException {
+        try (Statement statement = con.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT ID, name FROM medecine")) {
 
-        // Execute a query to select ID and name columns from the medecine table
-        ResultSet resultSet = statement.executeQuery("SELECT ID, name FROM medecine");
-
-        // Add rows to the model
-        while (resultSet.next()) {
-            Object[] row = {resultSet.getInt("ID"), resultSet.getString("name")};
-            model.addRow(row);
+            while (resultSet.next()) {
+                Object[] row = {resultSet.getInt("ID"), resultSet.getString("name")};
+                model.addRow(row);
+            }
         }
-        resultSet.close();
-        statement.close();
-
     }
 
-
-    public ResultSet SEARCH(String name)
-    {
-
+    // Search for a medicine by name
+    public ResultSet SEARCH(String name) throws SQLException {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
+
         try {
             String query = "SELECT * FROM medecine WHERE name = ?";
             pstmt = con.prepareStatement(query);
             pstmt.setString(1, name);
             rs = pstmt.executeQuery();
-            return rs;
+            return rs; // Return the open ResultSet
         } catch (SQLException e) {
-            // Log the error or handle it appropriately
             e.printStackTrace();
-            return null; // Return null if an exception occurs
+            return null;
         }
     }
-    public void addToCart(int medId, double totalPrice, int nbUnits,int Id) throws SQLException {
-        String sql = "INSERT INTO MedicaFacture (idFac,idMed, PriceF, nbF) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement pstmt = con.prepareStatement(sql)) {
-            pstmt.setInt(1, Id);
-            pstmt.setInt(2, medId);
-            pstmt.setDouble(3, totalPrice);
-            pstmt.setInt(4, nbUnits);
 
+    public void commitCartToDatabase(List<CartItem> cartItems) throws SQLException {
+        con.setAutoCommit(false); // Begin transaction
+
+        try {
+            // Calculate total price
+            double total = calculateTotalPrice(cartItems);
+
+            // Insert facture record and get its ID
+            LocalDate currentDate = LocalDate.now();
+            int factureID = addToFacture(currentDate, total);
+
+            // Insert cart items into medicafacture
+            for (CartItem item : cartItems) {
+                addToCart(item.getMedId(), factureID, item.getTotalPrice(), item.getNbUnits());
+            }
+
+            con.commit(); // Commit transaction
+        } catch (SQLException ex) {
+            con.rollback(); // Rollback on error
+            throw ex;
+        } finally {
+            con.setAutoCommit(true); // Restore auto-commit mode
+        }
+    }
+
+    private double calculateTotalPrice(List<CartItem> cartItems) {
+        double total = 0.0;
+        for (CartItem item : cartItems) {
+            total += item.getTotalPrice();
+        }
+        return total;
+    }
+
+    public void addToCart(int medId, int billId, double totalPrice, int nbUnits) throws SQLException {
+        String sql = "INSERT INTO medicafacture (bill_id, medicine_id, quantity, medicineTotalPrice) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setInt(1, billId);
+            pstmt.setInt(2, medId);
+            pstmt.setInt(3, nbUnits);
+            pstmt.setDouble(4, totalPrice);
             pstmt.executeUpdate();
         }
     }
+    // Add a new facture entry
+    public int addToFacture(LocalDate date, double total) throws SQLException {
+        String sql = "INSERT INTO facture (date, total) VALUES (?, ?)";
+        try (PreparedStatement pstmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setDate(1, Date.valueOf(date));
+            pstmt.setDouble(2, total);
+            pstmt.executeUpdate();
 
-    private double calculateTotalPrice(int factureID) throws SQLException {
-        String selectSql = "SELECT SUM(totalPrice) AS total FROM MedicaFacture WHERE idFac = ?";
-        try (PreparedStatement pstmt = con.prepareStatement(selectSql)) {
-            pstmt.setInt(1, factureID);
-            try (ResultSet resultSet = pstmt.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getDouble("total");
+            // Retrieve the generated ID for the newly inserted facture
+            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1); // Return the generated ID
                 } else {
-                    return 0; // Return 0 if there are no matching records in MedicaFacture
+                    throw new SQLException("Creating facture failed, no ID obtained.");
                 }
             }
         }
     }
 
-
-    public void addToFacture(int factureID) throws SQLException {
-        // Calculate total price from MedicaFacture table for the given factureID
-        double total = calculateTotalPrice(factureID);
-
-        // Get current date
-        LocalDate currentDate = LocalDate.now();
-        Date date = Date.valueOf(currentDate);
-
-        // Insert data into facture table
-        String insertSql = "INSERT INTO facture (date,IDF,totaleF) VALUES (?, ?, ?)";
-        try (PreparedStatement pstmt = con.prepareStatement(insertSql)) {
-            pstmt.setInt(1, factureID);
-            pstmt.setDate(2, date);
-            pstmt.setDouble(3, total);
-            pstmt.executeUpdate();
-        }
-    }
-
+    // Fetch all entries from MedicaFacture for display
     public DefaultTableModel fetchMedicaFacture() throws SQLException {
         DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("IDFac");
-        model.addColumn("IDMed");
-        model.addColumn("totalPrice");
-        model.addColumn("NB_unitsF");
-
-        if (con == null) {
-            throw new SQLException("Connection is not established.");
-        }
+        model.addColumn("Bill ID");
+        model.addColumn("Medicine ID");
+        model.addColumn("Quantity");
+        model.addColumn("Total Price");
 
         String sql = "SELECT * FROM medicafacture";
         try (Statement statement = con.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)) {
+
             while (resultSet.next()) {
                 Object[] row = {
-                        resultSet.getInt("idFac"),
-                        resultSet.getInt("idMed"),
-                        resultSet.getDouble("PriceF"),
-                        resultSet.getInt("nbF")
+                        resultSet.getInt("bill_id"),
+                        resultSet.getInt("medicine_id"),
+                        resultSet.getInt("quantity"),
+                        resultSet.getDouble("medicineTotalPrice")
                 };
                 model.addRow(row);
             }
@@ -121,12 +129,9 @@ public class SellMedDao {
     }
 
 
-    public void ViewBill()
-    {
-
+    public ResultSet getAllBills() throws SQLException {
+        String query = "SELECT * FROM facture";
+        PreparedStatement pstmt = con.prepareStatement(query);
+        return pstmt.executeQuery();
     }
-
 }
-
-
-

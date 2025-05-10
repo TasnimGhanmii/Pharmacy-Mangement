@@ -1,3 +1,6 @@
+import DataBase.Config;
+import DataBase.ProfileDAO;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
@@ -5,9 +8,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Profil extends JFrame implements ActionListener {
+    ResultSet rs;
     ImageIcon img;
     JButton update;
     JLabel name,number,email,adress,profile,image;
@@ -15,13 +20,14 @@ public class Profil extends JFrame implements ActionListener {
     JPanel pnorth,center;
     URL url;
     Border b;
-    Profil()
-    {
+    Profil(ResultSet rs) throws SQLException {
         this.setTitle("Profile");
         this.setSize(700, 500);
         this.setLayout(new BorderLayout());
         this.getContentPane().setBackground(Color.WHITE);
         this.setResizable(true);
+
+        this.rs=rs;
 
         pnorth=new JPanel(new BorderLayout());
         pnorth.setPreferredSize(new Dimension(700, 50));
@@ -86,15 +92,11 @@ public class Profil extends JFrame implements ActionListener {
 
         update.addActionListener(this);
 
-        LogIn l=new LogIn();
-        try {
-            name.setText(l.rs.getString("name"));
-            number.setText(l.rs.getString("phone"));
-            email.setText(l.rs.getString("email"));
-            adress.setText(l.rs.getString("address"));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+
+        Jname.setText(rs.getString("name"));
+        Jnumber.setText(rs.getString("phone"));
+        Jemail.setText(rs.getString("email"));
+        Jadress.setText(rs.getString("address"));
 
 
 
@@ -105,7 +107,14 @@ public class Profil extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
          if(e.getSource()==update)
          {
-              //quest
+             ProfileDAO dao=new ProfileDAO(Config.URL,Config.USERNAME,Config.PASSWORD);
+
+             try {
+                 dao.update(Jname.getText(),Jnumber.getText(),Jemail.getText(),Jadress.getText());
+
+             } catch (SQLException ex) {
+                 throw new RuntimeException(ex);
+             }
          }
     }
 }

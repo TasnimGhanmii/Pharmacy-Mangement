@@ -5,21 +5,26 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DashboardPharmacist extends JFrame implements ActionListener {
-    JLabel Dashboard,imgLabel;
-    JPanel center, pnorth,image;
+    ResultSet rs;
+    JLabel Dashboard;
+    JPanel center, pnorth;
     JButton add_med, sell_med, view_med, view_bill, update_med, profile, logOut, Exit;
     ImageIcon img;
     Border b;
     URL URL;
-    DashboardPharmacist() {
+    DashboardPharmacist(ResultSet rs) {
         this.setTitle("Pharmacist Dashboard");
         this.setSize(900, 700);
         this.setLayout(new BorderLayout());
         this.getContentPane().setBackground(Color.darkGray);
         this.setResizable(true);
+
+        this.rs=rs;
+
 
         Dashboard = new JLabel("Pharmacist Dashboard", SwingConstants.CENTER); // Center align the text
         Font f = new Font("Britannic Bold", Font.CENTER_BASELINE, 20);
@@ -162,11 +167,20 @@ public class DashboardPharmacist extends JFrame implements ActionListener {
         }
         if(e.getSource()==view_bill)
         {
-            ViewBill  a= new ViewBill();
+            try {
+                ViewBill  a= new ViewBill();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Error fetching bills: " + ex.getMessage());
+
+            }
         }
         if(e.getSource()==profile)
         {
-            Profil p=new Profil();
+            try {
+                Profil p=new Profil(rs);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         }
 
 

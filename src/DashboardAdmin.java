@@ -5,20 +5,25 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class DashboardAdmin extends JFrame implements ActionListener {
-    JLabel Dashboard,imgLabel;
-    JPanel center, pnorth,image;
+    ResultSet rs;
+    JLabel Dashboard;
+    JPanel center, pnorth;
     JButton add_user, Profile, view_user, logOut, Exit,update_user;
     ImageIcon img;
     Border b;
     URL URL;
-    DashboardAdmin()  {
+    DashboardAdmin(ResultSet rs)  {
         this.setTitle("Admin Dashboard");
         this.setSize(900, 700);
         this.setLayout(new BorderLayout());
         this.getContentPane().setBackground(Color.darkGray);
         this.setResizable(true);
+
+        this.rs=rs;
 
         Dashboard = new JLabel("Admin Dashboard", SwingConstants.CENTER); // Center align the text
         Font f = new Font("Britannic Bold", Font.CENTER_BASELINE, 20);
@@ -125,7 +130,12 @@ public class DashboardAdmin extends JFrame implements ActionListener {
         }
         if(e.getSource()==Profile)
         {
-            Profil a= new Profil();
+            try {
+                Profil a= new Profil(rs);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+
         }
         if(e.getSource()==view_user)
         {

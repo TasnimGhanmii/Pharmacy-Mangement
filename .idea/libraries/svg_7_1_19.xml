@@ -1,0 +1,26 @@
+<component name="libraryTable">
+  <library name="svg-7.1.19">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/svg-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/styled-xml-parser-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/sign-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/pdftest-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/pdfa-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/layout-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/kernel-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/io-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/forms-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/iText-Core-7.1.19-only-jars/barcodes-7.1.19.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/slf4j-api-1.7.36.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/slf4j-simple-1.7.36.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/Desktop/slf4j-api-1.7.36-javadoc.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/slf4j-simple-1.7.36-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/Desktop/slf4j-api-1.7.36-sources.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/slf4j-simple-1.7.36-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
